@@ -9,7 +9,7 @@ using namespace std;
 
 class calculator {
     private: string input;
-    private: vector<int> numbers; // every number in input
+    private: vector<float> numbers; // every number in input
     private: vector<int> rating;  // every operation in input
     private: vector<int> symbols; // order of execution of respective operation in input
     // after getReady function input gets transformed into numbers and symbols vectors, where symbols[i] 
@@ -39,7 +39,7 @@ class calculator {
     }
 
     // main function, gives just int. Complexity O(n^2)
-    public: int calculate() {
+    public: float calculate() {
         if (numbers.size() == 0)
             return 0;
         while (symbols.size() > 0) {
@@ -69,7 +69,7 @@ class calculator {
             symbols.erase(symbols.begin() + maxRatingSymbol);
             rating.erase(rating.begin() + maxRatingSymbol);
         }
-        int buf = numbers[0];
+        float buf = numbers[0];
         numbers.clear();
         symbols.clear();
         rating.clear();
@@ -170,8 +170,12 @@ class calculator {
             return -1;
         else if (chr == ')')
             return -2;
-        else
+        else if (chr == '.')
             return -3;
+        else if (chr == ',')
+            return -3;
+        else
+            return -4;
     }
 
     //used for ordering of operations. Should be bigger then the amount of available operations
@@ -179,12 +183,13 @@ class calculator {
 
     //technical staff
     // puts new number into numbers vector
-    private: void push(bool* isNegative, string buf) {
+    private: void push(bool* isNegative, string buf. bool* isFloat) {
         if (*isNegative)
-            numbers.push_back(-stoi(buf));
+            numbers.push_back(-stof(buf));
         else
-            numbers.push_back(stoi(buf));
+            numbers.push_back(stof(buf));
         *isNegative = false;
+        *isFloat = false;
         
     }
     // used for adding multiplication near breackets when needed
@@ -199,6 +204,7 @@ class calculator {
                string buf = "";
                int curRating = 0;
                bool isNegative = false;
+               bool isFloat = 0;
                for (int i = 0; i < input.length(); i++) {
                    int result = isSymbol(input[i]);
                    if (result == 0) {
@@ -207,10 +213,22 @@ class calculator {
                        }
                        buf += input[i];
                    }
+                   else if (result == -3) {
+                       if (buf == "brkt") {
+                           buf = "";
+                       }
+                       if (!ifFloat) {
+                           if (buf == "") {
+                               buf += "0";
+                           }
+                           buf += ".";
+                           isFloat = true;
+                       }
+                   }
                    else if (result == -1) {
                        if (buf != "") {
                            if (buf != "brkt")
-                                push(&isNegative, buf);
+                                push(&isNegative, buf, &isFloat);
                            check(curRating);
                            rating.push_back(curRating * amountOfSymbols + 3);
                            symbols.push_back(3);
@@ -220,15 +238,15 @@ class calculator {
                    }
                    else if (result == -2) {
                        if (buf != "" && buf != "brkt")
-                           push(&isNegative, buf);
+                           push(&isNegative, buf, &isFloat);
                        check(curRating);
                        curRating -= 1;
                        buf = "brkt";
                    }
-                   else if (result != -3) {
+                   else if (result != -4) {
                        if (buf != "") {
                            if (buf != "brkt")
-                               push(&isNegative, buf);
+                               push(&isNegative, buf, &isFloat);
                            check(curRating);
                            rating.push_back(curRating * amountOfSymbols + result);
                            symbols.push_back(result);
@@ -239,8 +257,8 @@ class calculator {
                        buf = "";
                    }
                }
-               if (buf != "") {
-                       push(&isNegative, buf);
+               if (buf != "" && buf != "brkt") {
+                       push(&isNegative, buf, &isFloat);
                        check(curRating);
                }
                if (numbers.size() <= symbols.size()) {
@@ -261,7 +279,8 @@ int main()
     string mode = "";
    while (mode != "1" && mode != "2") {
         cout << "Write 1 if you chose no explanations mode.\nWrite 2 if you chose mode with explanations!\n";
-        getline(cin, mode);
+        //getline(cin, mode);
+        mode = 1;
     }
 
     if (mode == "1")
@@ -272,7 +291,8 @@ int main()
     for (;;) {
         cout << "Write your expression!\nWrite stop to stop the program!\n";
         
-        getline(cin, input);
+        //getline(cin, input);
+        input = "10(12-10)-(2*5+4)";
         if (input == "stop")
             return 0;
         cout << endl;
